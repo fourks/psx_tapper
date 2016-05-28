@@ -19,7 +19,7 @@ As a toy project to learn the Playstation 1 SDK, I've developed a clone of the [
 ## A bit of history
 
 ### What is a Playstation 1, PS1, PSX or PSone?
-Obligatory link to [Wikipedia](https://en.wikipedia.org/wiki/PlayStation_(console). All those are commercial and _street_ names for the first generation of Sony console. Technically speaking _PSX_ doesn't belong to the pack since it was a Japan-only release of a hybrid hardware ([a Playstation2 console + a DVR](https://en.wikipedia.org/wiki/PSX_(video_game_console)).
+Obligatory link to [Wikipedia](https://en.wikipedia.org/wiki/PlayStation_(console)). All those are commercial and _street_ names for the first generation of Sony console. Technically speaking _PSX_ doesn't belong to the pack since it was a Japan-only release of a hybrid hardware ([a Playstation2 console + a DVR](https://en.wikipedia.org/wiki/PSX_(video_game_console))).
 
 I suggest using any classic "brick" model (from `SCPH-1001` to `SCPH-5xxx` models). The console must be modded in order to run unsigned software.
 
@@ -30,11 +30,11 @@ It's a 1983 Midway arcade about a barman trying to serve booze to as many custom
 
 This reimplementation is completely from scratch concerning code, while original graphical assets have been ripped off thanks to M.A.M.E. (`F4` key in game).
 
-A sprite sheet is an image where any in-game asset ([sprites](https://en.wikipedia.org/wiki/Sprite_(computer_graphics)) is stored at precise coordinates. You can find the first two original sprite sheets [here](https://octodex.github.com/blob/master/pics/tapper) (files `sheet0.bmp` and `sprite1.bmp`).
+A sprite sheet is an image where any in-game asset is stored at precise coordinates. You can find the first two original sprite sheets [here](https://octodex.github.com/blob/master/pics/screengrabs) (files `sheet0.bmp` and `sprite1.bmp`).
 
 See [Workflow for graphics](#workflow-for-graphics) for some tips about graphics.
 
-There's no sound or music in this clone at this time (see [TODO](https://github.com/apiraino/psx_tapper/blob/master/TODO.txt) since I've haven't tackled yet the API.
+There's no sound or music in this clone at this time (see [TODO](https://github.com/apiraino/psx_tapper/blob/master/TODO.txt), I've haven't tackled yet the API.
 
 ### Documentation
 At that time there was no StackOverflow :-) and developers relied on heavy tomes sent by Sony along the hardware devkit. The two books that you will need are:
@@ -48,8 +48,8 @@ Specs of the console are everywhere, I'll just point out here some information y
 
 * The memory layout is detailed in many tutorials, for example from [Orion_'s website](http://onorisoft.free.fr/psx/tutorial/tuto.htm).
 
-* You basically have at your disposal a single memory page of 1024x512 pixels for 16bit for a total of 1mb of VRAM but you can't use all this "wealth". Speaking of PAL resolutions, the first 320x256 pixels are used by the currently active frame buffer (what you see on the TV). At [0,256] ("under" the previous buffer) you have another 320x256 that is the back buffer being drawn while the other one is shown. These two buffers swap at every frame. This leaves you with half of that megabyte of VRAM to store your graphic assets.
-You may increase your game resolution up to 640x512 (PAL) but the more VRAM you steal for your frame buffers, the less remains for quick access of image assets. Assets that are not in VRAM must be loaded from CD and that kills performances. Conventional RAM (2mb) is used for code and libraries.
+* You basically have at your disposal a single memory page of 1024x512 pixels for 16bit for a total of 1mb of VRAM but you can't use all this "wealth". Speaking of PAL resolutions, the first 320x256 pixels are used by the currently active frame buffer (what you see on the TV). At \[0,256\] ("under" the previous buffer) you have another 320x256 that is the back buffer being drawn while the other one is shown. These two buffers swap at every frame. This leaves you with half of that megabyte of VRAM to store your graphic assets.
+You may increase your game resolution up to 640x512 but the more VRAM you steal for your frame buffers, the less remains for quick access of image assets. Assets that are not in VRAM must be loaded from CD and that kills performances. Conventional RAM (2mb) is used for code and libraries.
 
 * The way graphics work in the PS1 is roughly like a treadmill: you have a structure called _Ordering Tables_ (basically a linked list of graphical instructions) that feeds the GPU. After VSYNC you init an Ordering Table item, execute instructions (move sprites, manage collisions and so on) and finally send the new OT to the GPU. Buffers are then swapped:
 ```
@@ -65,7 +65,7 @@ You may increase your game resolution up to 640x512 (PAL) but the more VRAM you 
         System_DrawFrame(ot, NULL, NULL);
     }
 ```
-Be careful doing too many thing in the time frame at your disposal. Refresh frequencies (PAL or NTSC) allows you from 30ms to 40ms between frames. If you crunch too much stuff or your code is not properly optimized, frames won't be sent in time to keep the rate above 24fps and your game will be sluggish. Not a problem for such a trivial game like this, but sound familiar, huh?
+Be careful doing too many things in the time frame at your disposal. Refresh frequencies (PAL or NTSC) allows you from 30ms to 40ms between frames. If you crunch too much stuff or your code is not properly optimized, OT won't be sent in time to keep the rate above 24fps and your game will be sluggish. Not a problem for such a trivial game like this, but sound familiar, huh?
 
 You may have heard of the [Net Yaroze](https://en.wikipedia.org/wiki/Net_Yaroze) console: it was a special PS1 targeted at bedroom/indie coders willing to approach the Sony console for little cost. It has the same specs as the grey PS1 and some peculiar features.
  * It's a collector item, therefore extremely pricey instead of a modded grey PS1 you can buy for a few bucks off eBay
@@ -122,12 +122,12 @@ The way to work with images is:
  - not satisfied, change the position
    - compile and run
  - rinse and repeat until you're satisfied
- 
+
  In order to ease this pain I wrote **pxfinder**, a tiny library that shows the current cursor position. You link it in your code and it should shrink your time wasted for sprite positioning.
 
 ### Use efficiently a sprite map
-- Have a look at the original [sprite map](https://github.com/apiraino/psx_tapper/blob/master/pics/tapper/sprite0.bmp): sprites are halved in two (e.g. top and bottom half of the bartender); often you only need to load only the part that is actually changing. Try to isolate the "moving" parts of your sprites and only change that in your code that reacts to events.
-- Positioning sprites in the map at "smart" [x,y] coordinates allows you to retrieve them with less code (see [the drunkard frame struct](https://github.com/apiraino/psx_tapper/blob/master/drunkark.c)).
+- Have a look at the original [sprite map](https://github.com/apiraino/psx_tapper/blob/master/pics/screengrabs/sprite0.bmp): sprites are divided in two (e.g. top and bottom half of the bartender); often you only need to load only the part that is actually changing. Try to isolate the "moving" parts of your sprites and only change that in your code that reacts to events.
+- Positioning sprites in the map at "smart" [x,y] coordinates allows you to retrieve them with less code (see [the drunkard frame struct](https://github.com/apiraino/psx_tapper/blob/master/drunkard.c)).
 
 Here's some tools (see [References](#references) or google them):
 
@@ -136,7 +136,7 @@ Here's some tools (see [References](#references) or google them):
 * **TIMTOOL**: a very important tool! This lets you place TIM files in a map representing the PS1 memory. This is very useful to understand how VRAM is used. Position in memory is then saved into the TIM file.
 * **bmp2tim**: converts back BMP -> TIM
 * **GIMP / Photoshop 4.0 / PaintShopPro 4**: if you want to do pixel art there are probably better tools, but I used GIMP to prepare the sprite sheets. Also Photoshop 4 can be used (which is free as in free beer).
-* [create_tapper_tim.py or .sh, make_cursor.sh](https://github.com/apiraino/psx_tapper/blob/master/tools): just an example of scripts you can code yourself to create TIM files.
+* create_tapper_tim.py or .sh, make_cursor.sh: just an example of scripts you can code yourself to create TIM files.
 
 ### Workflow for 3D graphics
 TODO
@@ -149,13 +149,14 @@ In the [makecd](https://github.com/apiraino/psx_tapper/blob/master/tools/makecd)
 
 You don't need to do a CD, often a simple PS-X executable will suffice, especially if you create small applications or POC for learning.
 In order to create an executable use **cpe2psx**. From the Readme: _"What it does is a simple conversion from the CPE format into something the PlayStation can understand out of the box, that is a PS-X EXE file."_ PS-EXE files are essentially executables with all your stuff and can be directly run into the console without the hassle of making a CD release. Data (for example images and sounds) **must** be embedded as C/ASM data array (created with tools such as `bin2h`). PS-EXE files cannot load external data. Great if you want to code a demo. I suggest creating your first executable this way.
-PS-EXE files can injected into RAM with [PSXSERIAL]
+PS-EXE files can injected into RAM with PSXSERIAL.
 
 If you want to release more rich stuff with a lot of audio and image assets, at some point you'll need to stop embedding stuff as C files and create a "fat" PS-EXE, you'll fill up the available heap; you should have a directory tree with all the resources and assets and you load them as needed.
 
 Making a PS1 CD only differs from the standard procedure (i.e. `mkisofs`) in that you need to embed a region license file (leaked from the official SDK since the dawn of time). I think that's just a formal step to create a valid PSX CD since a modded PSX can run games from any region, therefore it doesn't really matter which license file you will embed.
 
 Needless to say, any CD you will produce *will not* run on a unmodded console. A CD has also the advantage that you can run your game on your neighbours' consoles, while PS-EXE files can only be loaded with PSXSERIAL.
+
 Tools to make a CD:
 * **PSXISOMaker**: a GUI too to guide you in the process
 * **mkpsxiso**: some as above but using a CLI tool that I've put together a while ago recompiling for Win32 the Linux version of this tool.
@@ -163,13 +164,13 @@ Tools to make a CD:
 * **makecd.bat**: a script that uses `mkpsxiso` to automate the procedure.
 
 ## Additional libraries
-Using the bare SDK for PS1 is incredibly useful to understand how things really work under the hood but at some point you really want to abstract a bit, especially when creating 3D primitives and pipelining data towards the frame buffer. Most third-party developers back in the day used their own libraries that abstracted from the SDK the common tasks.
+Using the bare SDK for PS1 is incredibly useful to understand how things really work under the hood but at some point you really want to abstract a bit, especially when creating 3D primitives and pipelining data towards the GPU. Most third-party developers back in the day used their own libraries that abstracted from the SDK the common tasks.
 
 I use a very useful thin layer ([PSXLIB](http://onorisoft.free.fr/psx/tutorial/tuto.htm)) by a French hero called _Orion_\_ that wraps the most basic system calls and helps carrying out common tasks concerning sound, sprites, background, data access, user dialogs (!) and so on. Read the headers to see what you have available.
 
 Third-party developers back in the day were heroes anyway because they optimized critical code writing ASM for the R3000A CPU.
 
-There's also an effort to reimplement an open-source version of a PS1 SDK for Linux (see `References`) but it is limited to 2D stuff and it's not very active.
+There's also an effort to reimplement an open-source version of a PS1 SDK for Linux (see [References](#references)) but it is limited to 2D stuff and the project it's not very active.
 
 ## Compile
 After cloning the repo, check paths in the `Makefile`, then run `make`. You should end up with some stuff in the `ISOROOT` directory. If you just want to use the PS-EXE file pick `MAIN.PSX` and inject it into the PS1 with PSXSERIAL, else run `makecd.bat` to create the cd, you should see two new files appearing: `psxiso.cue` and `psxiso.bin`.
@@ -204,7 +205,7 @@ C:\psyq\tools\psxserial-012\PSXSERIAL.exe MAIN.EXE COM4
 ```
 where `COM4` is the serial port you mapped when you installed PSXSERIAL.
 
-Note: I've successfully transferred data from a virtualized XP instance running from Virtualbox to the console.
+**Note**: I've successfully transferred data from a virtualized XP instance running from Virtualbox to the console.
 
 ## Fun facts
 The compiler (`ccpsx`) was developed by SN Systems Software Ltd ([they're still in business!](http://www.snsystems.com/)).
@@ -220,6 +221,8 @@ During the lifespan of the PS1, Sony released updates to their SDK. You will fin
 * [Sources for the pxfinder tool](https://github.com/apiraino/psx_pxfinder)
 
 ## Disclaimer
+This repo includes tools freely available in order to save some time to get started. Credit is due (and a **big** thank you) to respective owners.
+
 Technically speaking, some of the code in this repo is still copyrighted by Sony. However so many moons have passed since the PS1 was a profitable platform that I highly doubt anyone will be sued.
 
 The Playstation 1 was some serious piece of hardware (kudos to the engineers) and this is just for learning purposes. We are just a bunch of retrogaming enthusiasts.
